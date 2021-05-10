@@ -1,0 +1,20 @@
+{
+	"name": "maximal/alfabank-business-checker",
+	"description": "Alfa-Bank Business Online balance and transactions checker",
+	"license": "MIT",
+	"type": "project",
+	"authors": [
+		{
+			"name": "MaximAL",
+			"email": "almaximal@ya.ru"
+		}
+	],
+	"require": {
+		"php": ">=7.4",
+		"ext-curl": "*",
+
+		"php-webdriver/webdriver": "^1.10",
+		"vlucas/phpdotenv": "5.3.x-dev"
+	},
+	"minimum-stability": "dev"
+}

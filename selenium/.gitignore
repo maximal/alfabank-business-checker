@@ -1,0 +1,5 @@
+# Каталог для файлов Вебдрайвера.
+# Здесь должен лежать файл chromedriver/chromedriver.exe
+# Качать драйвера можно по адресу https://chromedriver.chromium.org/downloads
+*
+!.gitignore
