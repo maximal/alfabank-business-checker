@@ -122,8 +122,8 @@ $oldBalance = doubleval($cache['balance']);
 $balanceText = $driver->findElement(WebDriverBy::cssSelector($balanceSelector))->getText();
 $balance = stringToAmount($balanceText);
 $message = [
-	'<strong><u>' . amountToString($balance, 2) . '</u></strong>' .
-	' ₽ · баланс · <del>' . amountToString($oldBalance, 2) . '</del>'
+	'<strong><u>' . amountToString($balance, 2) . '</u></strong> ₽ · баланс' .
+	($balance !== $oldBalance ? (' · <del>' . amountToString($oldBalance, 2) . '</del>') : '')
 ];
 //echo 'Баланс: ', amountToString($balance, 2), ' ₽', PHP_EOL;
 
@@ -168,12 +168,12 @@ foreach ($trs as $row) {
 $driver->close();
 if (count($newTransactions) > 0) {
 	sendBotMessage($telegramBotToken, $telegramBotChat, implode(PHP_EOL . PHP_EOL, $message));
+	file_put_contents($cacheFile, json_encode(
+		['balance' => $balance, 'items' => $transactions],
+		JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
+	));
 }
 
-file_put_contents($cacheFile, json_encode(
-	['balance' => $balance, 'items' => $transactions],
-	JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
-));
 exit(0);
 
 
