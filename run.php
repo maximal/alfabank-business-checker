@@ -135,6 +135,9 @@ $newTransactions = [];
 foreach ($trs as $row) {
 	// Получаем значения из строк таблицы доходов-расходов на странице
 	$tds = $row->findElements(WebDriverBy::cssSelector('td'));
+	if (count($tds) < 5) {
+		continue;
+	}
 	$date = $tds[0]->getText();
 	list($agent, $description) = explode("\n", $tds[1]->getText(), 2);
 	$number = $tds[2]->getText();
