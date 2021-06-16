@@ -121,9 +121,15 @@ $oldBalance = doubleval($cache['balance']);
 // Новый баланс
 $balanceText = $driver->findElement(WebDriverBy::cssSelector($balanceSelector))->getText();
 $balance = stringToAmount($balanceText);
+
+// Разница балансов текстом
+$balanceDiff = $balance !== $oldBalance
+	? (
+		' · <del>' . amountToString($oldBalance, 2) . '</del> ' .
+		preg_replace('/^[+−]/u', '$0 ', amountToString($balance - $oldBalance, 2))
+	) : '';
 $message = [
-	'<strong><u>' . amountToString($balance, 2) . '</u></strong> ₽ · баланс' .
-	($balance !== $oldBalance ? (' · <del>' . amountToString($oldBalance, 2) . '</del>') : '')
+	'<strong><u>' . amountToString($balance, 2) . '</u></strong> ₽ · баланс' . $balanceDiff
 ];
 //echo 'Баланс: ', amountToString($balance, 2), ' ₽', PHP_EOL;
 
@@ -169,6 +175,9 @@ foreach ($trs as $row) {
 }
 
 $driver->close();
+
+// Если новых транзакций нет, то не посылаем обновления даже при разнице балансов.
+// Так делаем, потому что иногда баланс обновляется быстрее, чем появляются транзакции.
 if (count($newTransactions) > 0) {
 	sendBotMessage($telegramBotToken, $telegramBotChat, implode(PHP_EOL . PHP_EOL, $message));
 	file_put_contents($cacheFile, json_encode(
