@@ -10,11 +10,11 @@
 		}
 	],
 	"require": {
-		"php": ">=7.4",
+		"php": "^7.4|^8.0|^8.1",
 		"ext-curl": "*",
 
 		"php-webdriver/webdriver": "^1.10",
-		"vlucas/phpdotenv": "5.3.x-dev"
+		"vlucas/phpdotenv": "^5.3"
 	},
 	"minimum-stability": "dev"
 }
