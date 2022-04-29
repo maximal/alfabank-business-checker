@@ -113,6 +113,19 @@ $driver->wait()->until(
 //$driver->wait(1);
 sleep(1);
 
+// Есть ли текущие отправления средств?
+$inProgress = $driver->findElement(WebDriverBy::cssSelector(
+	'[data-test-id=button_payments-processing]'
+));
+if (preg_match('/(\d+)$/', trim($inProgress->getText()), $match)) {
+	$inProgressCount = (int)$match[1];
+	if ($inProgress > 0) {
+		// Есть текущие отправляемые транзакции: баланс и таблица неполные
+		$driver->close();
+		exit(0);
+	}
+}
+
 // Кеш последних операций и баланса
 $cache = json_decode(@file_get_contents($cacheFile), true) ?? ['balance' => 0, 'items' => []];
 $oldTransactions = $cache['items'];
