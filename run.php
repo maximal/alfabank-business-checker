@@ -48,7 +48,6 @@ $options->setExperimentalOption(
 	'prefs',
 	[
 		'profile.default_content_setting_values' => ['images' => 2, 'stylesheets' => 2, 'stylesheet' => 2],
-		'profile.managed_default_content_settings' => ['stylesheets' => 2],
 		'profile.managed_default_content_settings.stylesheets' => 2,
 		'profile.managed_default_content_settings' => ['stylesheet' => 2],
 		'profile.managed_default_content_settings.stylesheet' => 2,
@@ -119,7 +118,7 @@ $inProgress = $driver->findElement(WebDriverBy::cssSelector(
 ));
 if (preg_match('/(\d+)$/', trim($inProgress->getText()), $match)) {
 	$inProgressCount = (int)$match[1];
-	if ($inProgress > 0) {
+	if ($inProgressCount > 0) {
 		// Есть текущие отправляемые транзакции: баланс и таблица неполные
 		$driver->close();
 		exit(0);
@@ -129,7 +128,7 @@ if (preg_match('/(\d+)$/', trim($inProgress->getText()), $match)) {
 // Кеш последних операций и баланса
 $cache = json_decode(@file_get_contents($cacheFile), true) ?? ['balance' => 0, 'items' => []];
 $oldTransactions = $cache['items'];
-$oldBalance = doubleval($cache['balance']);
+$oldBalance = (float)$cache['balance'];
 
 // Новый баланс
 $balanceText = $driver->findElement(WebDriverBy::cssSelector($balanceSelector))->getText();
@@ -209,11 +208,11 @@ exit(0);
  */
 function stringToAmount(string $string): float
 {
-	return doubleval(str_replace(
+	return (float)str_replace(
 		['−', ' ', ' ', ' ', ',', '₽'],
-		['-',  '',  '',  '', '.',  ''],
+		['-',     '',  '',     '', '.',  ''],
 		$string
-	));
+	);
 }
 
 /**
@@ -246,7 +245,7 @@ function transactionExists(array $items, array $transaction): bool
 			$item['agent'] === $transaction['agent'] &&
 			$item['description'] === $transaction['description'] &&
 			$item['number'] === $transaction['number'] &&
-			doubleval($item['sum']) === doubleval($transaction['sum']) &&
+			(float)$item['sum'] === (float)$transaction['sum'] &&
 			$item['currency'] === $transaction['currency']) {
 			return true;
 		}
@@ -259,6 +258,7 @@ function transactionExists(array $items, array $transaction): bool
  * @param string $token Токен бота
  * @param string|int $chatId Идентификатор чата
  * @param string $text Текст сообщения
+ * @throws Exception
  */
 function sendBotMessage(string $token, $chatId, string $text): void
 {
