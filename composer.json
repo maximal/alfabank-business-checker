@@ -13,8 +13,8 @@
 		"php": "^7.4|^8.0|^8.1",
 		"ext-curl": "*",
 
-		"php-webdriver/webdriver": "^1.10",
-		"vlucas/phpdotenv": "^5.3"
+		"php-webdriver/webdriver": "^1.14",
+		"vlucas/phpdotenv": "^5.5"
 	},
-	"minimum-stability": "dev"
+	"minimum-stability": "stable"
 }
