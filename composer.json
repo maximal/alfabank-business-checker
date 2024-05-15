@@ -10,11 +10,15 @@
 		}
 	],
 	"require": {
-		"php": "^7.4|^8.0|^8.1",
+		"php": "^8.0|^8.1|^8.2|^8.3|^8.4",
 		"ext-curl": "*",
+		"ext-json": "*",
 
 		"php-webdriver/webdriver": "^1.14",
 		"vlucas/phpdotenv": "^5.5"
+	},
+	"require-dev": {
+		"roave/security-advisories": "dev-latest"
 	},
 	"minimum-stability": "stable"
 }

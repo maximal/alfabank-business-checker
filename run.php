@@ -31,8 +31,8 @@ $telegramBotChat = $_ENV['TELEGRAM_BOT_CHAT'];
 
 $loginSelector = 'input[name=username]';
 $passwordSelector = 'input[name=password]';
-$balanceSelector = '.account-plate__amount';
-$tableSelector = 'table.arui-table';
+$balanceSelector = '.money-account-amount';
+$tableSelector = '.operations-table-module table';
 $cacheFile = __DIR__ . '/cache/transactions.json';
 
 
@@ -57,7 +57,7 @@ $options->setExperimentalOption('useAutomationExtension', false);
 $options->setExperimentalOption('excludeSwitches', ['enable-automation']);
 $options->addArguments([
 	'--incognito',
-	//'--window-size=' . $this->config['browserWindowSize'],
+	'--window-size=900,600',
 	//'--window-position=' . $this->config['browserWindowPosition'],
 	'--disable-infobars',
 	'--no-proxy-server',
@@ -113,20 +113,25 @@ $driver->wait()->until(
 sleep(1);
 
 // Есть ли текущие отправления средств?
-$inProgress = $driver->findElement(WebDriverBy::cssSelector(
-	'[data-test-id=button_payments-processing]'
-));
-if (preg_match('/(\d+)$/', trim($inProgress->getText()), $match)) {
-	$inProgressCount = (int)$match[1];
-	if ($inProgressCount > 0) {
-		// Есть текущие отправляемые транзакции: баланс и таблица неполные
-		$driver->close();
-		exit(0);
-	}
-}
+//$inProgress = $driver->findElement(WebDriverBy::cssSelector(
+//	'[data-test-id=button_payments-processing]'
+//));
+//if (preg_match('/(\d+)$/', trim($inProgress->getText()), $match)) {
+//	$inProgressCount = (int)$match[1];
+//	if ($inProgressCount > 0) {
+//		// Есть текущие отправляемые транзакции: баланс и таблица неполные
+//		$driver->close();
+//		exit(0);
+//	}
+//}
 
 // Кеш последних операций и баланса
-$cache = json_decode(@file_get_contents($cacheFile), true) ?? ['balance' => 0, 'items' => []];
+$cache = json_decode(
+	@file_get_contents($cacheFile),
+	true,
+	512,
+	JSON_THROW_ON_ERROR
+) ?? ['balance' => 0, 'items' => []];
 $oldTransactions = $cache['items'];
 $oldBalance = (float)$cache['balance'];
 
@@ -156,12 +161,12 @@ foreach ($trs as $row) {
 	if (count($tds) < 5) {
 		continue;
 	}
-	$date = $tds[0]->getText();
-	list($agent, $description) = explode("\n", $tds[1]->getText(), 2);
-	$number = $tds[2]->getText();
-	$sum = $tds[3]->getText();
-	$currency = $tds[4]->getText();
+	$date = $tds[1]->getText();
+	[$agent, $description] = explode("\n", $tds[2]->getText(), 2);
+	$number = $tds[3]->getText();
+	$sum = $tds[4]->getText();
 	$sumText = amountToString(stringToAmount($sum));
+	$currency = getCurrency($sum);
 
 	// Транзакция
 	$item = [
@@ -194,7 +199,7 @@ if (count($newTransactions) > 0) {
 	sendBotMessage($telegramBotToken, $telegramBotChat, implode(PHP_EOL . PHP_EOL, $message));
 	file_put_contents($cacheFile, json_encode(
 		['balance' => $balance, 'items' => $transactions],
-		JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
+		JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR
 	));
 }
 
@@ -203,23 +208,34 @@ exit(0);
 
 /**
  * Текстовое представление в число.
- * @param string $string
- * @return float
  */
 function stringToAmount(string $string): float
 {
 	return (float)str_replace(
-		['−', ' ', ' ', ' ', ',', '₽'],
-		['-',     '',  '',     '', '.',  ''],
+		['−', ' ', ' ', ' ', ' ', ',', '₽'],
+		['-',     '',  '',     '',     '', '.',  ''],
 		$string
 	);
+}
+
+function getCurrency(string $string): string
+{
+	if (preg_match('/₽$/u', trim($string))) {
+		return '₽';
+	}
+	if (preg_match('/\$$/u', trim($string))) {
+		return '$';
+	}
+	if (preg_match('/€$/u', trim($string))) {
+		return '€';
+	}
+	return '';
 }
 
 /**
  * Число в тестовое представление.
  * @param float $amount Число
- * @param integer $decimals Количество знаков после запятой
- * @return string
+ * @param int $decimals Количество знаков после запятой
  */
 function amountToString(float $amount, int $decimals = 0): string
 {
@@ -236,7 +252,6 @@ function amountToString(float $amount, int $decimals = 0): string
  * Существует ли транзакция в списке транзакций.
  * @param array $items Список транзакций
  * @param array $transaction Искомая транзакция
- * @return bool
  */
 function transactionExists(array $items, array $transaction): bool
 {
@@ -284,9 +299,9 @@ function sendBotMessage(string $token, $chatId, string $text): void
 	$result = curl_exec($curl);
 	curl_close($curl);
 	if (is_string($result)) {
-		$object = json_decode($result);
+		$object = json_decode($result, false, 512, JSON_THROW_ON_ERROR);
 		if (!$object->ok) {
-			throw new \Exception(
+			throw new RuntimeException(
 				'Error sending Telegram message (#' . $object->error_code . '): ' .
 				$object->description
 			);

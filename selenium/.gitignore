@@ -1,5 +1,7 @@
 # Каталог для файлов Вебдрайвера.
 # Здесь должен лежать файл chromedriver/chromedriver.exe
-# Качать драйвера можно по адресу https://chromedriver.chromium.org/downloads
+# Качать драйвера можно по адресам:
+# * https://googlechromelabs.github.io/chrome-for-testing/#stable
+# * https://chromedriver.chromium.org/downloads
 *
 !.gitignore
