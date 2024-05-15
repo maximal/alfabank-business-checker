@@ -109,8 +109,7 @@ $driver->wait()->until(
 	))
 );
 
-$driver->wait(1);
-//sleep(1);
+sleep(1);
 
 // Есть ли текущие отправления средств?
 try {
@@ -160,6 +159,7 @@ $trs = $table->findElements(WebDriverBy::cssSelector('tbody tr'));
 $transactions = [];
 $newTransactions = [];
 foreach ($trs as $row) {
+	//$driver->executeScript('arguments[0].scrollIntoView()', [$row]);
 	// Получаем значения из строк таблицы доходов-расходов на странице
 	$tds = $row->findElements(WebDriverBy::cssSelector('td'));
 	if (count($tds) < 5) {
